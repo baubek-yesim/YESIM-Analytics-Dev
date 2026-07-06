@@ -12,9 +12,7 @@
 # MARKDOWN ********************
 
 # # MariaDB Sample Query
-#
 # Connects to the MariaDB source database over **Spark JDBC** and queries a table, using **Azure Key Vault** for credentials. No secrets are stored in this notebook or in Git.
-#
 # **Before running this notebook:**
 # 1. Attach an **Environment** with the MariaDB JDBC driver (`org.mariadb.jdbc:mariadb-java-client`) published and attached to this notebook — or use the commented `%%configure` fallback described in the Notes cell at the end.
 # 2. Confirm the Azure Key Vault has secrets `mariadb-user` and `mariadb-password`, and that this notebook's identity has `Get` permission on them.
@@ -79,12 +77,10 @@ display(df.limit(100))
 # MARKDOWN ********************
 
 # ## Land into the Lakehouse
-#
 # The cells below write the MariaDB data into a Delta table in this notebook's **default
 # lakehouse**, then read it back with Spark SQL. This requires a Fabric Lakehouse to be
 # attached as the default lakehouse first (see prerequisite 5 above) — if none is attached,
 # `saveAsTable` fails with a "no default lakehouse" error.
-#
 # Only the table's *metadata* (name, schema) is ever tracked in Git via the lakehouse's
 # `.platform`/`shortcuts.metadata.json` files — the actual rows live in OneLake and are
 # never committed. See `docs/lakehouse-walkthrough.md` for the full create → commit → sync
@@ -146,7 +142,6 @@ display(result)
 # MARKDOWN ********************
 
 # ## Notes
-#
 # - **Driver delivery:** the recommended path is a Fabric **Environment** with the MariaDB Connector/J jar (Maven `org.mariadb.jdbc:mariadb-java-client:3.3.3`) published and attached to this notebook. If you'd rather not create an Environment, add a first cell with the `%%configure` magic instead:
 #   ```
 #   %%configure
@@ -155,3 +150,4 @@ display(result)
 # - **Security:** credentials are read only from Azure Key Vault via `notebookutils.credentials.getSecret`. Never hardcode a username or password in a cell — Fabric redacts secret values in output, but a literal password typed into a cell is still committed to Git in plain text.
 # - **Troubleshooting:** a `ClassNotFoundException` for `org.mariadb.jdbc.Driver` means the Environment isn't attached/published (or the `%%configure` fallback wasn't run first). A connection timeout/refused error means the MariaDB host isn't reachable from Fabric — check the firewall allowlist. A "no default lakehouse" error on `saveAsTable` means no Lakehouse is attached as this notebook's default yet.
 # - **Lakehouse data vs. Git:** committing this workspace to Git never uploads or overwrites table data — only item metadata (like the lakehouse's display name and logical ID) is tracked. Each workspace that syncs this repo starts with an *empty* lakehouse and repopulates it by rerunning this notebook. See `docs/lakehouse-walkthrough.md` for the full walkthrough.
+
