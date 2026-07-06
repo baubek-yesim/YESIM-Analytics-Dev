@@ -49,6 +49,12 @@ source_table = "yesim_signup_info"
 key_vault_uri = "https://yesim-analytics-kv.vault.azure.net/"
 lakehouse_table = "bronze_mariadb_kay_revenue_upd"  # Delta table name to land data into (needs a default lakehouse attached)
 
+# Optional server-side row filter. This is a plain SELECT condition sent to MariaDB — it is
+# read-only and does NOT modify or delete anything in the source. kay_revenue_upd contains a
+# stray header-style row whose integer columns hold text (e.g. id = 'id'), which breaks
+# Spark's integer decoding; keeping only numeric-id rows skips it. Set to None to read all rows.
+row_filter = "id REGEXP '^-?[0-9]+$'"
+
 # METADATA ********************
 
 # META {
@@ -107,7 +113,14 @@ connection_properties = {
     "driver": "org.mariadb.jdbc.Driver",
 }
 
-df = spark.read.jdbc(url=jdbc_url, table=source_table, properties=connection_properties)
+# Apply the optional row_filter by wrapping the table in a subquery. Still a plain read —
+# nothing in the source database is changed.
+if row_filter:
+    dbtable = f"(SELECT * FROM {source_table} WHERE {row_filter}) AS src"
+else:
+    dbtable = source_table
+
+df = spark.read.jdbc(url=jdbc_url, table=dbtable, properties=connection_properties)
 
 print(f"Row count: {df.count()}")
 display(df.limit(100))
@@ -197,5 +210,6 @@ display(result)
 #   ```
 # - **Security:** credentials are read only from Azure Key Vault via `notebookutils.credentials.getSecret`. Never hardcode a username or password in a cell — Fabric redacts secret values in output, but a literal password typed into a cell is still committed to Git in plain text.
 # - **Troubleshooting:** a `ClassNotFoundException` for `org.mariadb.jdbc.Driver` means the Environment isn't attached/published (or the `%%configure` fallback wasn't run first). A connection timeout/refused error means the MariaDB host isn't reachable from Fabric — check the firewall allowlist. A "no default lakehouse" error on `saveAsTable` means no Lakehouse is attached as this notebook's default yet.
+# - **`value '...' cannot be decoded as Integer`:** the source table has a malformed row (for example a header row that was imported as data) where an integer column holds text. The `row_filter` in the parameters cell skips it server-side with a read-only `SELECT` — the source is never modified. To eyeball the bad row, run a pushdown query that wraps the integer columns in `CAST(col AS CHAR)`.
 # - **Lakehouse data vs. Git:** committing this workspace to Git never uploads or overwrites table data — only item metadata (like the lakehouse's display name and logical ID) is tracked. Each workspace that syncs this repo starts with an *empty* lakehouse and repopulates it by rerunning this notebook. See `docs/lakehouse-walkthrough.md` for the full walkthrough.
 
