@@ -23,11 +23,15 @@
 # MARKDOWN ********************
 
 # # mariadb_utils
+# 
 # Shared MariaDB connection helpers for this workspace. Don't run this notebook directly — load it from another notebook with:
+# 
 # ```
 # %run mariadb_utils
 # ```
+# 
 # After that, the functions below are available in the calling notebook's session, e.g.:
+# 
 # ```
 # df = read_mariadb_table(
 #     host="your-mariadb-host.example.com",
@@ -36,6 +40,7 @@
 #     key_vault_uri="https://your-keyvault.vault.azure.net/",
 # )
 # ```
+# 
 # Requirements in the *calling* notebook's session: the MariaDB JDBC driver on the Spark classpath (Environment with `org.mariadb.jdbc:mariadb-java-client`, or the `%%configure` fallback) and `Get` access to the Key Vault secrets `mariadb-user` / `mariadb-password`.
 
 # CELL ********************
@@ -127,6 +132,7 @@ def snapshot_mariadb_table(host, database, table, key_vault_uri, lakehouse_table
 # MARKDOWN ********************
 
 # ## Notes
+# 
 # - This is the workspace's "shared py file" pattern: logic lives in a notebook so it's versioned in Git (as `notebook-content.py`) and loaded into other notebooks with `%run mariadb_utils`. Files placed in a Lakehouse's **Files** section are *not* tracked by Git, which is why shared code shouldn't live there.
 # - Keep all credential access inside `get_mariadb_credentials` — never accept or hardcode a literal password.
 # - If you rename this notebook, update every `%run mariadb_utils` call site (`%run` resolves by notebook display name within the workspace).

@@ -27,8 +27,11 @@
 # MARKDOWN ********************
 
 # # MariaDB Sample Query
+# 
 # Connects to the MariaDB source database over **Spark JDBC** and queries a table, using **Azure Key Vault** for credentials. No secrets are stored in this notebook or in Git.
+# 
 # **Before running this notebook:**
+# 
 # 1. Attach an **Environment** with the MariaDB JDBC driver (`org.mariadb.jdbc:mariadb-java-client`) published and attached to this notebook — or use the commented `%%configure` fallback described in the Notes cell at the end.
 # 2. Confirm the Azure Key Vault has secrets `mariadb-user` and `mariadb-password`, and that this notebook's identity has `Get` permission on them.
 # 3. Confirm the MariaDB host is reachable from Fabric (firewall allowlist for outbound traffic).
@@ -92,10 +95,12 @@ display(df.limit(100))
 # MARKDOWN ********************
 
 # ## Land into the Lakehouse
+# 
 # The cells below write the MariaDB data into a Delta table in this notebook's **default
 # lakehouse**, then read it back with Spark SQL. This requires a Fabric Lakehouse to be
 # attached as the default lakehouse first (see prerequisite 5 above) — if none is attached,
 # `saveAsTable` fails with a "no default lakehouse" error.
+# 
 # Only the table's *metadata* (name, schema) is ever tracked in Git via the lakehouse's
 # `.platform`/`shortcuts.metadata.json` files — the actual rows live in OneLake and are
 # never committed. See `docs/lakehouse-walkthrough.md` for the full create → commit → sync
@@ -157,6 +162,7 @@ display(result)
 # MARKDOWN ********************
 
 # ## Notes
+# 
 # - **Driver delivery:** the recommended path is a Fabric **Environment** with the MariaDB Connector/J jar (Maven `org.mariadb.jdbc:mariadb-java-client:3.3.3`) published and attached to this notebook. If you'd rather not create an Environment, add a first cell with the `%%configure` magic instead:
 #   ```
 #   %%configure
