@@ -29,6 +29,15 @@ a table, using Azure Key Vault for credentials (nothing sensitive is stored in G
 4. Open the notebook, edit the connection-parameters cell (host/port/database/table/vault
    URI) to match your instance, then **Run all**.
 
+### Your Lakehouse
+
+The `MariaDB Sample Query` notebook can land data into a Lakehouse you create yourself
+(separate from any lakehouse your data-analytics head has set up, like `Testing_Lakehouse`).
+Creating and syncing a lakehouse works differently from a notebook: **only its metadata
+(name, GUID, shortcuts) is tracked in Git — table data never is.** For the full step-by-step
+(create in the UI → commit → attach to the notebook → ingest → verify what did/didn't sync),
+see [`docs/lakehouse-walkthrough.md`](../docs/lakehouse-walkthrough.md).
+
 ## Syncing changes
 
 - **Git → Fabric:** commit and push changes on `dev`, then in the Fabric workspace go to

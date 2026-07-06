@@ -17,6 +17,15 @@ integration.
 
 - `Fabric/` — the Fabric workspace's Git root. See [`Fabric/Readme.md`](Fabric/Readme.md)
   for the item inventory and one-time setup steps for each item.
+- `docs/` — supplementary guides, e.g. [`docs/lakehouse-walkthrough.md`](docs/lakehouse-walkthrough.md).
+
+## Architecture
+
+The sample data flow in this workspace is **MariaDB → notebook → Lakehouse → query**: the
+`MariaDB Sample Query` notebook reads a table from the MariaDB source database over Spark
+JDBC, lands it as a Delta table in a Fabric Lakehouse, and queries it back with Spark SQL.
+See [`docs/lakehouse-walkthrough.md`](docs/lakehouse-walkthrough.md) for how to create your
+own Lakehouse and sync it through Git.
 
 ## Git ↔ Fabric round-trip
 

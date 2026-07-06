@@ -20,6 +20,7 @@
 # 2. Confirm the Azure Key Vault has secrets `mariadb-user` and `mariadb-password`, and that this notebook's identity has `Get` permission on them.
 # 3. Confirm the MariaDB host is reachable from Fabric (firewall allowlist for outbound traffic).
 # 4. Edit the connection parameters in the next cell to match your database.
+# 5. To run the "Land into the Lakehouse" cells further down, create a Fabric Lakehouse and attach it as this notebook's **default lakehouse** first — see `docs/lakehouse-walkthrough.md` in the repo root for a full walkthrough.
 
 # CELL ********************
 
@@ -29,6 +30,7 @@ db_port = "3306"
 db_name = "your_database"
 source_table = "your_table"
 key_vault_uri = "https://your-keyvault.vault.azure.net/"
+lakehouse_table = "bronze_mariadb"  # Delta table name to land data into (needs a default lakehouse attached)
 
 # METADATA ********************
 
@@ -74,6 +76,46 @@ display(df.limit(100))
 # META   "language_group": "synapse_pyspark"
 # META }
 
+# MARKDOWN ********************
+
+# ## Land into the Lakehouse
+#
+# The cells below write the MariaDB data into a Delta table in this notebook's **default
+# lakehouse**, then read it back with Spark SQL. This requires a Fabric Lakehouse to be
+# attached as the default lakehouse first (see prerequisite 5 above) — if none is attached,
+# `saveAsTable` fails with a "no default lakehouse" error.
+#
+# Only the table's *metadata* (name, schema) is ever tracked in Git via the lakehouse's
+# `.platform`/`shortcuts.metadata.json` files — the actual rows live in OneLake and are
+# never committed. See `docs/lakehouse-walkthrough.md` for the full create → commit → sync
+# lifecycle and a hands-on demonstration of that boundary.
+
+# CELL ********************
+
+# Write the MariaDB result into a Delta table in the attached default Lakehouse.
+df.write.mode("overwrite").format("delta").saveAsTable(lakehouse_table)
+print(f"Wrote {df.count()} rows to Lakehouse table: {lakehouse_table}")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# Read the landed table back with Spark SQL, straight from the Lakehouse.
+result = spark.sql(f"SELECT * FROM {lakehouse_table} LIMIT 100")
+display(result)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
 # CELL ********************
 
 # Optional patterns — uncomment and adapt as needed.
@@ -94,9 +136,6 @@ display(df.limit(100))
 #     properties=connection_properties,
 # )
 
-# 3) Persist a snapshot into a Fabric Lakehouse (requires a default Lakehouse attached):
-# df.write.mode("overwrite").format("delta").saveAsTable("mariadb_snapshot")
-
 # METADATA ********************
 
 # META {
@@ -114,4 +153,5 @@ display(df.limit(100))
 #   { "conf": { "spark.jars.packages": "org.mariadb.jdbc:mariadb-java-client:3.3.3" } }
 #   ```
 # - **Security:** credentials are read only from Azure Key Vault via `notebookutils.credentials.getSecret`. Never hardcode a username or password in a cell — Fabric redacts secret values in output, but a literal password typed into a cell is still committed to Git in plain text.
-# - **Troubleshooting:** a `ClassNotFoundException` for `org.mariadb.jdbc.Driver` means the Environment isn't attached/published (or the `%%configure` fallback wasn't run first). A connection timeout/refused error means the MariaDB host isn't reachable from Fabric — check the firewall allowlist.
+# - **Troubleshooting:** a `ClassNotFoundException` for `org.mariadb.jdbc.Driver` means the Environment isn't attached/published (or the `%%configure` fallback wasn't run first). A connection timeout/refused error means the MariaDB host isn't reachable from Fabric — check the firewall allowlist. A "no default lakehouse" error on `saveAsTable` means no Lakehouse is attached as this notebook's default yet.
+# - **Lakehouse data vs. Git:** committing this workspace to Git never uploads or overwrites table data — only item metadata (like the lakehouse's display name and logical ID) is tracked. Each workspace that syncs this repo starts with an *empty* lakehouse and repopulates it by rerunning this notebook. See `docs/lakehouse-walkthrough.md` for the full walkthrough.
