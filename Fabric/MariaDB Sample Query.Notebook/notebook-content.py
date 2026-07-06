@@ -45,7 +45,7 @@
 db_host = "168.119.212.162"  # public host or IP
 db_port = "3306"
 db_name = "analytics_statistics"
-source_table = "kay_revenue_upd"
+source_table = "yesim_signup_info"
 key_vault_uri = "https://yesim-analytics-kv.vault.azure.net/"
 lakehouse_table = "bronze_mariadb_kay_revenue_upd"  # Delta table name to land data into (needs a default lakehouse attached)
 
@@ -63,6 +63,32 @@ lakehouse_table = "bronze_mariadb_kay_revenue_upd"  # Delta table name to land d
 db_user = notebookutils.credentials.getSecret(key_vault_uri, "mariadb-user")
 db_password = notebookutils.credentials.getSecret(key_vault_uri, "mariadb-password")
 print("Fetched MariaDB credentials from Key Vault.")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# Which columns did Spark infer as integer?
+df.printSchema()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# Find non-numeric values in a suspected integer column (pushed down to MariaDB).
+# Replace `id` with each integer column from printSchema until one returns rows.
+probe = "(SELECT id, COUNT(*) AS n FROM {t} WHERE id NOT REGEXP '^-?[0-9]+$' GROUP BY id LIMIT 20) AS p".format(t=source_table)
+spark.read.jdbc(url=jdbc_url, table=probe, properties=connection_properties).show(truncate=False)
 
 # METADATA ********************
 
