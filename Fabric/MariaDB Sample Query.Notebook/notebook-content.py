@@ -42,12 +42,12 @@
 # CELL ********************
 
 # Connection parameters (non-secret) — edit these to match your MariaDB instance.
-db_host = "your-mariadb-host.example.com"  # public host or IP
+db_host = "168.119.212.162"  # public host or IP
 db_port = "3306"
-db_name = "your_database"
-source_table = "your_table"
+db_name = "analytics_statistics"
+source_table = "kay_revenue_upd"
 key_vault_uri = "https://yesim-analytics-kv.vault.azure.net/"
-lakehouse_table = "bronze_mariadb"  # Delta table name to land data into (needs a default lakehouse attached)
+lakehouse_table = "bronze_mariadb_kay_revenue_upd"  # Delta table name to land data into (needs a default lakehouse attached)
 
 # METADATA ********************
 
