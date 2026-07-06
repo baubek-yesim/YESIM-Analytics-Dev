@@ -67,8 +67,8 @@ row_filter = "id REGEXP '^-?[0-9]+$'"
 
 # Fetch credentials from Azure Key Vault at runtime. Values are never persisted in Git,
 # and notebook output automatically redacts secret values (shown as [REDACTED]).
-db_user = notebookutils.credentials.getSecret(key_vault_uri, "mariadb-user")
-db_password = notebookutils.credentials.getSecret(key_vault_uri, "mariadb-password")
+db_user = notebookutils.credentials.getSecret(key_vault_uri, "my-maria-db-user")
+db_password = notebookutils.credentials.getSecret(key_vault_uri, "my-maria-db-pass")
 print("Fetched MariaDB credentials from Key Vault.")
 
 # METADATA ********************
