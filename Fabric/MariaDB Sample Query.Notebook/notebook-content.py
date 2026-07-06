@@ -50,9 +50,10 @@ key_vault_uri = "https://yesim-analytics-kv.vault.azure.net/"
 lakehouse_table = "bronze_mariadb_kay_revenue_upd"  # Delta table name to land data into (needs a default lakehouse attached)
 
 # Optional server-side row filter. This is a plain SELECT condition sent to MariaDB — it is
-# read-only and does NOT modify or delete anything in the source. kay_revenue_upd contains a
-# stray header-style row whose integer columns hold text (e.g. id = 'id'), which breaks
-# Spark's integer decoding; keeping only numeric-id rows skips it. Set to None to read all rows.
+# read-only and does NOT modify or delete anything in the source. Some source tables contain a
+# stray header-style row whose integer columns hold text (e.g. id = 'id'), which breaks Spark's
+# integer decoding; keeping only numeric-id rows skips it. It's a no-op on a clean id column.
+# Set to None to read the whole table, or change `id` if the offending column is different.
 row_filter = "id REGEXP '^-?[0-9]+$'"
 
 # METADATA ********************
@@ -69,32 +70,6 @@ row_filter = "id REGEXP '^-?[0-9]+$'"
 db_user = notebookutils.credentials.getSecret(key_vault_uri, "mariadb-user")
 db_password = notebookutils.credentials.getSecret(key_vault_uri, "mariadb-password")
 print("Fetched MariaDB credentials from Key Vault.")
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-# Which columns did Spark infer as integer?
-df.printSchema()
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-# Find non-numeric values in a suspected integer column (pushed down to MariaDB).
-# Replace `id` with each integer column from printSchema until one returns rows.
-probe = "(SELECT id, COUNT(*) AS n FROM {t} WHERE id NOT REGEXP '^-?[0-9]+$' GROUP BY id LIMIT 20) AS p".format(t=source_table)
-spark.read.jdbc(url=jdbc_url, table=probe, properties=connection_properties).show(truncate=False)
 
 # METADATA ********************
 
@@ -124,6 +99,32 @@ df = spark.read.jdbc(url=jdbc_url, table=dbtable, properties=connection_properti
 
 print(f"Row count: {df.count()}")
 display(df.limit(100))
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# (Diagnostic) Which columns did Spark infer as integer? Run after the read cell above.
+df.printSchema()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+# (Diagnostic) Find non-numeric values in a suspected integer column (pushed down to MariaDB).
+# Change `id` to each integer column from printSchema until one returns rows.
+probe = "(SELECT id, COUNT(*) AS n FROM {t} WHERE id NOT REGEXP '^-?[0-9]+$' GROUP BY id LIMIT 20) AS p".format(t=source_table)
+spark.read.jdbc(url=jdbc_url, table=probe, properties=connection_properties).show(truncate=False)
 
 # METADATA ********************
 
