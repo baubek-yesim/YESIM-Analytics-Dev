@@ -95,7 +95,27 @@ if row_filter:
 else:
     dbtable = source_table
 
-df = spark.read.jdbc(url=jdbc_url, table=dbtable, properties=connection_properties)
+# Read every column as STRING. Some source tables have a stray value in a numeric/timestamp
+# column (e.g. a header row imported as data) that breaks Spark's decoder no matter which
+# column it's in; reading as text sidesteps that entirely. This is a plain read — nothing in
+# the source database is changed. Cast columns to real types downstream once landed.
+schema_probe = spark.read.jdbc(
+    url=jdbc_url,
+    table=f"(SELECT * FROM {source_table} WHERE 1=0) AS s",
+    properties=connection_properties,
+)
+all_string_schema = ", ".join(f"`{field.name}` STRING" for field in schema_probe.schema.fields)
+
+df = (
+    spark.read.format("jdbc")
+    .option("url", jdbc_url)
+    .option("dbtable", dbtable)
+    .option("user", db_user)
+    .option("password", db_password)
+    .option("driver", "org.mariadb.jdbc.Driver")
+    .option("customSchema", all_string_schema)
+    .load()
+)
 
 print(f"Row count: {df.count()}")
 display(df.limit(100))
@@ -211,6 +231,6 @@ display(result)
 #   ```
 # - **Security:** credentials are read only from Azure Key Vault via `notebookutils.credentials.getSecret`. Never hardcode a username or password in a cell — Fabric redacts secret values in output, but a literal password typed into a cell is still committed to Git in plain text.
 # - **Troubleshooting:** a `ClassNotFoundException` for `org.mariadb.jdbc.Driver` means the Environment isn't attached/published (or the `%%configure` fallback wasn't run first). A connection timeout/refused error means the MariaDB host isn't reachable from Fabric — check the firewall allowlist. A "no default lakehouse" error on `saveAsTable` means no Lakehouse is attached as this notebook's default yet.
-# - **`value '...' cannot be decoded as Integer`:** the source table has a malformed row (for example a header row that was imported as data) where an integer column holds text. The `row_filter` in the parameters cell skips it server-side with a read-only `SELECT` — the source is never modified. To eyeball the bad row, run a pushdown query that wraps the integer columns in `CAST(col AS CHAR)`.
+# - **`value '...' cannot be decoded as Integer/Timestamp/...`:** the source table has a malformed row (for example a header row that was imported as data) where a typed column holds text. The read cell already loads every column as `STRING` via `customSchema` (a read-only reload, nothing in the source is changed), which sidesteps this regardless of which column is affected — cast the columns you need to real types after landing the data. `row_filter` (in the parameters cell) is a second, optional line of defense that drops matching rows server-side by `id`; adjust or clear it if the bad row isn't identifiable by `id`.
 # - **Lakehouse data vs. Git:** committing this workspace to Git never uploads or overwrites table data — only item metadata (like the lakehouse's display name and logical ID) is tracked. Each workspace that syncs this repo starts with an *empty* lakehouse and repopulates it by rerunning this notebook. See `docs/lakehouse-walkthrough.md` for the full walkthrough.
 
