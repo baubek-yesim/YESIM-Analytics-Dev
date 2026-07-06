@@ -14,20 +14,18 @@ them by hand unless you also update any dependent items' references.
 A PySpark notebook that connects to the MariaDB source database over Spark JDBC and queries
 a table, using Azure Key Vault for credentials (nothing sensitive is stored in Git).
 
-**One-time setup in the Fabric web UI before running it:**
+**One-time setup before running it** (each has a dedicated step-by-step guide):
 
-1. **Driver** — create a Fabric **Environment** (e.g. `AnalyticsDev_Env`), add the MariaDB
-   JDBC driver as a custom library (Maven Central: `org.mariadb.jdbc:mariadb-java-client`,
-   e.g. version `3.3.3` — download the jar and upload it), publish the environment, and
-   attach it to this notebook. Alternatively, use the `%%configure` fallback described in
-   the notebook's final Notes cell.
-2. **Key Vault** — create/use an Azure Key Vault with secrets `mariadb-user` and
-   `mariadb-password`, and grant `Get` permission to the identity that will run the
-   notebook.
+1. **Driver** — a Spark Environment with the MariaDB JDBC driver on the classpath.
+   See [`docs/environment-setup.md`](../docs/environment-setup.md). This workspace uses
+   `AnalyticsDev_Env` (already created and Git-tracked).
+2. **Key Vault** — an Azure Key Vault holding `mariadb-user` / `mariadb-password`, with the
+   notebook owner granted a secrets role. See [`docs/keyvault-setup.md`](../docs/keyvault-setup.md).
+   This workspace uses `https://yesim-analytics-kv.vault.azure.net/` (already set in the notebook).
 3. **Network** — make sure the MariaDB host allows inbound connections from Fabric
    (firewall allowlist).
-4. Open the notebook, edit the connection-parameters cell (host/port/database/table/vault
-   URI) to match your instance, then **Run all**.
+4. Open the notebook, set the remaining connection parameters (host/port/database/table) to
+   match your instance, then **Run all**.
 
 ### `mariadb_utils.Notebook`
 

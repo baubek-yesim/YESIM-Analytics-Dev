@@ -17,7 +17,10 @@ integration.
 
 - `Fabric/` — the Fabric workspace's Git root. See [`Fabric/Readme.md`](Fabric/Readme.md)
   for the item inventory and one-time setup steps for each item.
-- `docs/` — supplementary guides, e.g. [`docs/lakehouse-walkthrough.md`](docs/lakehouse-walkthrough.md).
+- `docs/` — setup guides and walkthroughs:
+  [`environment-setup.md`](docs/environment-setup.md) (MariaDB JDBC driver),
+  [`keyvault-setup.md`](docs/keyvault-setup.md) (credentials),
+  [`lakehouse-walkthrough.md`](docs/lakehouse-walkthrough.md).
 
 ## Architecture
 

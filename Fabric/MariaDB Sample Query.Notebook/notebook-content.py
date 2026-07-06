@@ -46,7 +46,7 @@ db_host = "your-mariadb-host.example.com"  # public host or IP
 db_port = "3306"
 db_name = "your_database"
 source_table = "your_table"
-key_vault_uri = "https://your-keyvault.vault.azure.net/"
+key_vault_uri = "https://yesim-analytics-kv.vault.azure.net/"
 lakehouse_table = "bronze_mariadb"  # Delta table name to land data into (needs a default lakehouse attached)
 
 # METADATA ********************
