@@ -38,6 +38,7 @@
 # 4. Edit the connection parameters in the next cell to match your database.
 # 5. To run the "Land into the Lakehouse" cells further down, create a Fabric Lakehouse and attach it as this notebook's **default lakehouse** first — see `docs/lakehouse-walkthrough.md` in the repo root for a full walkthrough.
 
+
 # CELL ********************
 
 # Connection parameters (non-secret) — edit these to match your MariaDB instance.
