@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "mariadb_utils",
+    "description": "Shared MariaDB connection helpers (Key Vault creds + Spark JDBC). Load into other notebooks with %run mariadb_utils."
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "c610276a-3058-4f8e-88f5-4e9fe4be679a"
+  }
+}

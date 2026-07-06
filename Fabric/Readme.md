@@ -29,6 +29,24 @@ a table, using Azure Key Vault for credentials (nothing sensitive is stored in G
 4. Open the notebook, edit the connection-parameters cell (host/port/database/table/vault
    URI) to match your instance, then **Run all**.
 
+### `mariadb_utils.Notebook`
+
+Shared MariaDB connection helpers (Key Vault credentials + Spark JDBC): this is the
+workspace's "shared py file" pattern. Code in a Lakehouse's **Files** section isn't tracked
+by Git, so reusable logic lives in this notebook instead — versioned as
+`notebook-content.py` and loaded into any other notebook with:
+
+```
+%run mariadb_utils
+df = read_mariadb_table(host=..., database=..., table=..., key_vault_uri=...)
+```
+
+Helpers: `get_mariadb_credentials`, `mariadb_jdbc_url`, `mariadb_connection_properties`,
+`read_mariadb_table`, `read_mariadb_query` (SQL pushdown), and `snapshot_mariadb_table`
+(land a table into the default Lakehouse as Delta). Same prerequisites as the sample
+notebook: JDBC driver on the classpath and Key Vault access in the *calling* notebook's
+session.
+
 ### Your Lakehouse
 
 The `MariaDB Sample Query` notebook can land data into a Lakehouse you create yourself
