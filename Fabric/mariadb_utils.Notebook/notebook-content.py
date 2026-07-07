@@ -118,7 +118,12 @@ def snapshot_mariadb_table(host, database, table, key_vault_uri, lakehouse_table
     DataFrame that was written.
     """
     df = read_mariadb_table(host, database, table, key_vault_uri, port)
-    df.write.mode(mode).format("delta").saveAsTable(lakehouse_table)
+    # overwriteSchema=true (overwrite mode only) replaces the table's schema so a stale column
+    # type from a prior run can't reject the current all-STRING read. Not valid for append mode.
+    writer = df.write.mode(mode).format("delta")
+    if mode == "overwrite":
+        writer = writer.option("overwriteSchema", "true")
+    writer.saveAsTable(lakehouse_table)
     print(f"Wrote {df.count()} rows to Lakehouse table: {lakehouse_table}")
     return df
 

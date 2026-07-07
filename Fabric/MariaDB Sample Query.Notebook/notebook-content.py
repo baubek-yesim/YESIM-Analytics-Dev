@@ -170,7 +170,10 @@ spark.read.jdbc(url=jdbc_url, table=probe, properties=connection_properties).sho
 # CELL ********************
 
 # Write the MariaDB result into a Delta table in the attached default Lakehouse.
-df.write.mode("overwrite").format("delta").saveAsTable(lakehouse_table)
+# overwriteSchema=true replaces the table's schema on each overwrite, so a stale column type
+# from a prior run (e.g. country_code created as char(2)) can't reject the current all-STRING
+# read. Every source value is landed as-is.
+df.write.mode("overwrite").option("overwriteSchema", "true").format("delta").saveAsTable(lakehouse_table)
 print(f"Wrote {df.count()} rows to Lakehouse table: {lakehouse_table}")
 
 # METADATA ********************
